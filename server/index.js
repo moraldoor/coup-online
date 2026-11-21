@@ -3,10 +3,25 @@ import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { randomInt } from "crypto";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app = express();
 app.use(cors());
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 app.get("/health", (_req, res) => res.json({ ok: true, name: "COUP ONLINE" }));
+
+const clientPath = path.join(__dirname, "../client/dist");
+
+app.use(express.static(clientPath));
+
+app.use((req, res, next) => {
+  if (req.method !== "GET") return next();
+  res.sendFile(path.join(clientPath, "index.html"));
+});
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
